@@ -1,0 +1,287 @@
+openapi: 3.1.0
+info:
+  title: Tea Hub
+  description: Контракт для работы с бэкендом каталога чаев
+  version: 1.0.0
+servers:
+- url: http://localhost:8085
+  description: Generated server url
+paths:
+  /api/v1/teas/{id}:
+    get:
+      tags:
+      - tea-controller
+      operationId: getTeaById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeaResponse"
+    put:
+      tags:
+      - tea-controller
+      operationId: updateTea
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeaRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeaResponse"
+    delete:
+      tags:
+      - tea-controller
+      operationId: deleteTea
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+  /api/v1/teas:
+    get:
+      tags:
+      - tea-controller
+      operationId: getTeaList
+      parameters:
+      - name: teaType
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - BLACK
+          - GREEN
+          - OOLONG
+          - WHITE
+          - PUER
+          - HERBAL
+      - name: originCountry
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: originRegion
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: maxPrice
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: minPrice
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: page
+        in: query
+        description: Zero-based page index (0..N)
+        required: false
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
+      - name: size
+        in: query
+        description: The size of the page to be returned
+        required: false
+        schema:
+          type: integer
+          default: 10
+          minimum: 1
+      - name: sort
+        in: query
+        description: "Sorting criteria in the format: property,(asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+        required: false
+        schema:
+          type: array
+          default:
+          - "name,ASC"
+          items:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelTeaResponse"
+    post:
+      tags:
+      - tea-controller
+      operationId: addTea
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeaRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeaResponse"
+  /api/v1/teas/{id}/activate:
+    post:
+      tags:
+      - tea-controller
+      operationId: activateTea
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+components:
+  schemas:
+    TeaRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        originCountry:
+          type: string
+          minLength: 1
+        originRegion:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum:
+          - BLACK
+          - GREEN
+          - OOLONG
+          - WHITE
+          - PUER
+          - HERBAL
+        notes:
+          type: string
+          minLength: 1
+        price:
+          type: number
+          maximum: 10000000.00
+          minimum: 0.01
+      required:
+      - name
+      - notes
+      - originCountry
+      - originRegion
+      - price
+      - type
+    TeaResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        originCountry:
+          type: string
+        originRegion:
+          type: string
+        type:
+          type: string
+          enum:
+          - BLACK
+          - GREEN
+          - OOLONG
+          - WHITE
+          - PUER
+          - HERBAL
+        notes:
+          type: string
+        price:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+      - createdAt
+      - id
+      - name
+      - notes
+      - originCountry
+      - originRegion
+      - price
+      - type
+      - updatedAt
+    PageMetadata:
+      type: object
+      properties:
+        size:
+          type: integer
+          format: int64
+        number:
+          type: integer
+          format: int64
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int64
+      required:
+      - number
+      - size
+      - totalElements
+      - totalPages
+    PagedModelTeaResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeaResponse"
+        page:
+          $ref: "#/components/schemas/PageMetadata"
+      required:
+      - content
+      - page
